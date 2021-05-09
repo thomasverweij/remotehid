@@ -2,6 +2,10 @@
 
 Hammerspoon script enabling users to use their touch devices as a remote mouse and keyboard for their mac. Useful when presenting or when using a mac as media player. Features a web interface providing touch and keyboard controls (accessible on local network).  
 
+<img src="https://raw.githubusercontent.com/thomasverweij/remotehid/img/screenshot1.png" width="150" />
+
+<img src="https://raw.githubusercontent.com/thomasverweij/remotehid/img/screenshot2.png" width="150" />
+
 ## WARNING
 
 Running this script will expose functionality on your local network that may help attackers compromise your system. Use with care and only on networks you trust.  
