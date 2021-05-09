@@ -1,6 +1,6 @@
 # RemoteHID
 
-Hammerspoon script enabling users to use their touch devices as remote controls for their mac. Useful when presenting or when using a mac as media player. Features a web interface providing touch and keyboard controls (accessible on local network).  
+Hammerspoon script enabling users to use their touch devices as a remote mouse and keyboard for their mac. Useful when presenting or when using a mac as media player. Features a web interface providing touch and keyboard controls (accessible on local network).  
 
 ## WARNING
 

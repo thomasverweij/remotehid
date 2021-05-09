@@ -11,12 +11,12 @@
     ],
     "Variable" : [
       {
-        "doc" : "The port that the server will listen on (default: 7638).",
         "name" : "port",
+        "def" : "RemoteHID.port",
+        "doc" : "The port that the server will listen on (default: 7638).",
         "stripped_doc" : [
           "The port that the server will listen on (default: 7638)."
         ],
-        "def" : "RemoteHID.port",
         "notes" : [
 
         ],
@@ -31,8 +31,9 @@
         ]
       },
       {
-        "doc" : "The interface that the server will listen on.\n\nAs well as real interface names (e.g. en0) the following values are valid:\n* An IP address of one of your interfaces\n    * localhost\n    * loopback\n    * nil (which means all interfaces, and is the default)",
         "name" : "interface",
+        "def" : "RemoteHID.interface",
+        "doc" : "The interface that the server will listen on.\n\nAs well as real interface names (e.g. en0) the following values are valid:\n* An IP address of one of your interfaces\n    * localhost\n    * loopback\n    * nil (which means all interfaces, and is the default)",
         "stripped_doc" : [
           "The interface that the server will listen on.",
           "",
@@ -42,7 +43,6 @@
           "    * loopback",
           "    * nil (which means all interfaces, and is the default)"
         ],
-        "def" : "RemoteHID.interface",
         "notes" : [
 
         ],
@@ -57,14 +57,14 @@
         ]
       },
       {
-        "doc" : "The password to access the webinterface.\n\ndefault: changeme",
         "name" : "password",
+        "def" : "RemoteHID.password",
+        "doc" : "The password to access the webinterface.\n\ndefault: changeme",
         "stripped_doc" : [
           "The password to access the webinterface.",
           "",
           "default: changeme"
         ],
-        "def" : "RemoteHID.password",
         "notes" : [
 
         ],
@@ -82,23 +82,23 @@
     "stripped_doc" : [
 
     ],
+    "desc" : "Hammerspoon script enabling users to use their smartphone as a remote mouse and keyboard for their mac.",
     "Deprecated" : [
 
     ],
     "type" : "Module",
-    "desc" : "Hammerspoon script enabling users to use their smartphone as a remote control for their mac.",
     "Constructor" : [
 
     ],
-    "doc" : "Hammerspoon script enabling users to use their smartphone as a remote control for their mac.",
+    "doc" : "Hammerspoon script enabling users to use their smartphone as a remote mouse and keyboard for their mac.",
     "Method" : [
       {
-        "doc" : "Init function. Called when loading spoon",
         "name" : "init",
+        "def" : "RemoteHID:init()",
+        "doc" : "Init function. Called when loading spoon",
         "stripped_doc" : [
           "Init function. Called when loading spoon"
         ],
-        "def" : "RemoteHID:init()",
         "notes" : [
 
         ],
@@ -113,12 +113,12 @@
         ]
       },
       {
-        "doc" : "Start RemoteHID server",
         "name" : "start",
+        "def" : "RemoteHID:start()",
+        "doc" : "Start RemoteHID server",
         "stripped_doc" : [
           "Start RemoteHID server"
         ],
-        "def" : "RemoteHID:start()",
         "notes" : [
 
         ],
@@ -133,12 +133,12 @@
         ]
       },
       {
-        "doc" : "Stop RemoteHID server",
         "name" : "stop",
+        "def" : "RemoteHID:stop()",
+        "doc" : "Stop RemoteHID server",
         "stripped_doc" : [
           "Stop RemoteHID server"
         ],
-        "def" : "RemoteHID:stop()",
         "notes" : [
 
         ],
@@ -153,12 +153,12 @@
         ]
       },
       {
-        "doc" : "Binds hotkeys for RemoteHID\nParameters:\n * mapping - A table containing hotkey details for the following items:\n  * start: to start server\n  * stop: to stop server\n\nExample:\n```\nlocal hyper = {\"alt\", \"cmd\"}\nspoon.RemoteHID:bindHotKeys({\n    start={hyper, \"s\", message=\"Started RemoteHID\"},\n    stop={hyper, \"a\", message=\"Stopped RemoteHID\"}\n})\n```",
         "name" : "bindHotkeys",
+        "def" : "RemoteHID:bindHotkeys()",
+        "doc" : "Binds hotkeys for RemoteHID\nParameters:\n * mapping - A table containing hotkey details for the following items:\n  * start: to start server\n  * stop: to stop server\n\nExample:\n```\nlocal hyper = {\"alt\", \"cmd\"}\nspoon.RemoteHID:bindHotKeys({\n    start={hyper, \"s\", message=\"Started RemoteHID\"},\n    stop={hyper, \"a\", message=\"Stopped RemoteHID\"}\n})\n```",
         "stripped_doc" : [
           "Binds hotkeys for RemoteHID"
         ],
-        "def" : "RemoteHID:bindHotkeys()",
         "notes" : [
 
         ],
@@ -192,8 +192,9 @@
     ],
     "items" : [
       {
-        "doc" : "The interface that the server will listen on.\n\nAs well as real interface names (e.g. en0) the following values are valid:\n* An IP address of one of your interfaces\n    * localhost\n    * loopback\n    * nil (which means all interfaces, and is the default)",
         "name" : "interface",
+        "def" : "RemoteHID.interface",
+        "doc" : "The interface that the server will listen on.\n\nAs well as real interface names (e.g. en0) the following values are valid:\n* An IP address of one of your interfaces\n    * localhost\n    * loopback\n    * nil (which means all interfaces, and is the default)",
         "stripped_doc" : [
           "The interface that the server will listen on.",
           "",
@@ -203,7 +204,6 @@
           "    * loopback",
           "    * nil (which means all interfaces, and is the default)"
         ],
-        "def" : "RemoteHID.interface",
         "notes" : [
 
         ],
@@ -218,14 +218,14 @@
         ]
       },
       {
-        "doc" : "The password to access the webinterface.\n\ndefault: changeme",
         "name" : "password",
+        "def" : "RemoteHID.password",
+        "doc" : "The password to access the webinterface.\n\ndefault: changeme",
         "stripped_doc" : [
           "The password to access the webinterface.",
           "",
           "default: changeme"
         ],
-        "def" : "RemoteHID.password",
         "notes" : [
 
         ],
@@ -240,12 +240,12 @@
         ]
       },
       {
-        "doc" : "The port that the server will listen on (default: 7638).",
         "name" : "port",
+        "def" : "RemoteHID.port",
+        "doc" : "The port that the server will listen on (default: 7638).",
         "stripped_doc" : [
           "The port that the server will listen on (default: 7638)."
         ],
-        "def" : "RemoteHID.port",
         "notes" : [
 
         ],
@@ -260,12 +260,12 @@
         ]
       },
       {
-        "doc" : "Binds hotkeys for RemoteHID\nParameters:\n * mapping - A table containing hotkey details for the following items:\n  * start: to start server\n  * stop: to stop server\n\nExample:\n```\nlocal hyper = {\"alt\", \"cmd\"}\nspoon.RemoteHID:bindHotKeys({\n    start={hyper, \"s\", message=\"Started RemoteHID\"},\n    stop={hyper, \"a\", message=\"Stopped RemoteHID\"}\n})\n```",
         "name" : "bindHotkeys",
+        "def" : "RemoteHID:bindHotkeys()",
+        "doc" : "Binds hotkeys for RemoteHID\nParameters:\n * mapping - A table containing hotkey details for the following items:\n  * start: to start server\n  * stop: to stop server\n\nExample:\n```\nlocal hyper = {\"alt\", \"cmd\"}\nspoon.RemoteHID:bindHotKeys({\n    start={hyper, \"s\", message=\"Started RemoteHID\"},\n    stop={hyper, \"a\", message=\"Stopped RemoteHID\"}\n})\n```",
         "stripped_doc" : [
           "Binds hotkeys for RemoteHID"
         ],
-        "def" : "RemoteHID:bindHotkeys()",
         "notes" : [
 
         ],
@@ -291,12 +291,12 @@
         ]
       },
       {
-        "doc" : "Init function. Called when loading spoon",
         "name" : "init",
+        "def" : "RemoteHID:init()",
+        "doc" : "Init function. Called when loading spoon",
         "stripped_doc" : [
           "Init function. Called when loading spoon"
         ],
-        "def" : "RemoteHID:init()",
         "notes" : [
 
         ],
@@ -311,12 +311,12 @@
         ]
       },
       {
-        "doc" : "Start RemoteHID server",
         "name" : "start",
+        "def" : "RemoteHID:start()",
+        "doc" : "Start RemoteHID server",
         "stripped_doc" : [
           "Start RemoteHID server"
         ],
-        "def" : "RemoteHID:start()",
         "notes" : [
 
         ],
@@ -331,12 +331,12 @@
         ]
       },
       {
-        "doc" : "Stop RemoteHID server",
         "name" : "stop",
+        "def" : "RemoteHID:stop()",
+        "doc" : "Stop RemoteHID server",
         "stripped_doc" : [
           "Stop RemoteHID server"
         ],
-        "def" : "RemoteHID:stop()",
         "notes" : [
 
         ],

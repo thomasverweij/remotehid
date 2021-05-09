@@ -1,6 +1,6 @@
 --- === RemoteHID ===
 ---  
---- Hammerspoon script enabling users to use their smartphone as a remote control for their mac.
+--- Hammerspoon script enabling users to use their smartphone as a remote mouse and keyboard for their mac.
 --- 
 
 local obj={}
@@ -41,6 +41,7 @@ obj._screenWidth = nil
 obj._screenHeight = nil
 obj._server = nil
 obj._menuBar = nil
+obj._host = nil
 
 local function _readFile(path)
     local file = io.open(path, "rb") 
@@ -48,6 +49,14 @@ local function _readFile(path)
     local content = file:read "*a" 
     file:close()
     return content
+end
+
+local function _getNetworkHost()
+    h = hs.fnutils.filter(
+        hs.host.names(), 
+        function(x) return string.find(x,".local") end
+    )
+    return (h[1] or "") .. ":" .. obj.port
 end
 
 local function _typeString(data)
@@ -132,9 +141,9 @@ function obj:init()
     end
 
     function _menuCallback()
-        local t = "RemoteHID running on: " .. (self.interface or "*") .. ":" .. self.port
         return {
-            { title = t, disabled = true },
+            { title = "Interface: " .. (self.interface or "*"), disabled = true },
+            { title = "Host: " .. (self._host or "Unavailable"), disabled = true },
             { title = "-"},
             { title = "Deactivate", fn = function() self:stop() end }
         }
@@ -143,6 +152,7 @@ function obj:init()
     self._mainScreen = hs.screen.mainScreen()
     self._screenWidth = self._mainScreen:currentMode()["w"]
     self._screenHeight = self._mainScreen:currentMode()["h"]
+    self._host = _getNetworkHost()
     self._menuBar = hs.menubar.new(true)
     self._menuBar:setMenu(_menuCallback)
     self._menuBar:setTooltip("RemoteHID")
