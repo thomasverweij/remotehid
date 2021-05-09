@@ -1,0 +1,315 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <script>
+            
+            function init() {
+
+                // constants
+                const keyboardInput = document.getElementById("keyboardInput")
+                const keyboard = document.getElementById("keyboard")
+                const abc = document.getElementById("abc")
+                const touch = document.getElementById("touch")
+                const modkeys = ["ctrl","alt","cmd","shift"]
+                const startSocket = () => {
+                    s = new WebSocket("ws://" + location.host + "/ws")
+                    s.onmessage = e => console.log("[message] ", e.data)
+                    s.onerror = e => console.log("[error] ", e)
+                    s.onclose = e => setTimeout(() => socket = startSocket(), 2000)
+                    return s
+                }
+
+                // variables
+                var socket = startSocket()
+                var tw = touch.offsetWidth      // touch area width
+                var th = touch.offsetHeight     // touch area height
+                var ex = tw / 2;                // last touch x position 
+                var ey = th / 2;                // last touch y position
+                var tc = 0                      // simultaneous touch count
+                var sx = 0                      // start touch x position
+                var sy = 0                      // start touch y position
+                var mc = 0                      // mission control showing
+                var mk = []                     // activated modkeys
+                
+                // handlers
+                const handleKeyboardInput = function(e) { 
+                    e.preventDefault() 
+
+                    if (mk.length != 0) {
+                        socket.send(encodeBlob({
+                            type: "key", 
+                            mods: mk,
+                            key: e.key
+                        })) 
+                        resetModKeys()
+                    } else {
+                        socket.send(encodeBlob({
+                            type: "string", 
+                            chars: filterKey(e.key)
+                        }))
+                    }
+                }
+
+                const handleKey = function(e) {
+                    var key = e.target.dataset.key
+                    if(modkeys.includes(key)) {
+                        if (mk.includes(key)) {
+                            mk.pop(key)
+                            e.target.classList.remove("active")
+                        } else {
+                            mk.push(key)
+                            e.target.classList.add("active")
+                            keyboardInput.focus()
+                        }
+                    } else if (key != undefined) {
+                        socket.send(encodeBlob({
+                            type: "key", 
+                            mods: mk,
+                            key: key
+                        })) 
+                        if(key == "spotlight") {
+                            keyboardInput.focus()
+                        }
+                        resetModKeys()
+                    }
+                }
+
+                const handleTouchMove = function(e) {
+                    e.preventDefault()
+
+                    cx = e.pageX
+                    cy = e.pageY
+
+                    if(cx >= sx) { nx = ex + (cx - sx) } 
+                    else { nx = ex - (sx - cx) }
+
+                    if(cy >= sy) { ny = ey + (cy - sy) } 
+                    else { ny = ey - (sy - cy) }
+
+                    if(tc == 1) { 
+                        socket.send(encodeBlob({
+                            type: "mousemove", 
+                            x: nx / tw, 
+                            y: ny / th
+                        }))
+                        ex = nx
+                        ey = ny
+                        sx = cx
+                        sy = cy
+
+                    } else if(tc == 2){
+                        socket.send(encodeBlob({
+                            type: "scroll", 
+                            x: cx - sx, 
+                            y: cy - sy
+                        }))
+                        sx = cx
+                        sy = cy
+
+                    } else if(tc == 3 && mc == 0){
+                        mc = 1
+                        socket.send(encodeBlob({
+                            type: "missioncontrol"
+                        }))
+                    }
+                }
+                
+                const handleClick = e => socket.send(encodeBlob({type: "leftclick"}))
+
+                // helpers
+                const encodeBlob = data => new Blob([JSON.stringify(data)], {type : "application/json"})
+                const filterKeys = {Backspace: "\b", Enter: "\n"}
+                const filterKey = k => (k.length == 1 && k) || (filterKeys[k] || "")
+                const resetModKeys = function() {
+                    mk = []
+                    mks = document.getElementsByClassName("active")
+                    while(mks[0]) {mks[0].classList.remove("active")}
+                }
+
+                // callbacks
+                keyboardInput.onkeydown = handleKeyboardInput
+                keyboard.onclick = handleKey
+                touch.ontouchstart = function(e) {
+                    tc += 1
+                    sx = e.pageX
+                    sy = e.pageY
+                }
+                touch.ontouchend = function() { 
+                    tc = 0
+                    mc = 0
+                    ex = Math.max(Math.min(ex, tw), 0)  
+                    ey = Math.max(Math.min(ey, th), 0)
+                }
+                touch.ontouchmove = handleTouchMove
+                touch.onclick = handleClick
+                abc.onclick = e => keyboardInput.focus()
+
+            }
+            
+            document.addEventListener("DOMContentLoaded", e => init())
+        
+        </script>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                -webkit-user-select: none;  
+                -moz-user-select: none;     
+                -ms-user-select: none;
+                user-select: none;
+                background-color: #6A6A6A;
+            }
+
+            .grid-container {
+                width: 100vw;
+                max-width: 500px;
+                height: 70vh;
+                margin: 10px auto auto auto;
+                display: grid;
+                grid-template-columns: 1fr;
+                grid-template-rows: 45% 55% ;
+                gap: 0px 0px;
+                grid-template-areas:
+                    "touch"
+                    "keyboard";
+            }
+
+
+            .touch { 
+                grid-area: touch; 
+                background-color: #969696;
+                user-select: none;
+                box-shadow: inset 0 -1px 0 1px #262626;
+                border-radius: 10px;
+            }
+
+            .keyboard {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+                grid-template-rows: 40px 40px 40px 40px;
+                gap: 0px 0px;
+                padding: 2px;
+                grid-template-areas:
+                    "esc ctrl option cmd up spotlight"
+                    "abc shift tab left down right"
+                    "voldown volup . . . ."
+                    ". . . . . .";
+                grid-area: keyboard;
+            }
+
+            .esc { grid-area: esc; }
+
+            .ctrl { grid-area: ctrl; }
+
+            .option { grid-area: option; }
+
+            .up { grid-area: up; }
+
+            .left { grid-area: left; }
+
+            .right { grid-area: right; }
+
+            .down { grid-area: down; }
+
+            .cmd { grid-area: cmd; }
+
+            .abc { grid-area: abc; }
+
+            .spotlight { grid-area: spotlight; }
+
+            .volup { grid-area: volup; }
+
+            .voldown { grid-area: voldown; }
+
+
+            button.key {
+                width: 100%;
+                height: 40px;
+                color: white;
+                /* text-shadow: 0 1px 0 white; */
+                border: 2px solid #6A6A6A; /* #9fa6ad; */
+                border-radius: 8px;
+                font-size: 18px;
+                background-color: #969696;
+                touch-action: manipulation;
+                box-shadow: inset 0 -1px 0 1px #262626;
+            }
+
+            button.active {
+                background-color:#d1d4d6;
+                color: black;
+            }
+
+            input#keyboardInput {
+                font-size: 16px;
+                position: absolute;
+                top: -100px;
+                bottom: -100px;
+                width: 1px;
+                height: 1px;
+            }
+
+            .hidden {
+                display: none;
+            }
+        </style>
+
+    </head>
+    <body> 
+        <div class="grid-container">
+            <div class="touch" id="touch">
+            </div>
+            <div class="keyboard" id="keyboard">
+              <div class="esc">
+                <button class="key" data-key="escape">esc</button>
+              </div>
+              <div class="ctrl">
+                <button class="key" data-key="ctrl">⌃</button>
+              </div>
+              <div class="option">
+                <button class="key" data-key="alt">⌥</button>
+              </div>
+              <div class="up">
+                <button class="key" data-key="up">↑</button>
+              </div>
+              <div class="left">
+                <button class="key" data-key="left">←</button>
+              </div>
+              <div class="right">
+                <button class="key" data-key="right">→</button>
+              </div>
+              <div class="down">
+                <button class="key" data-key="down">↓</button>
+              </div>
+              <div class="cmd">
+                <button class="key" data-key="cmd">⌘</button>
+              </div>
+              <div class="shift">
+                <button class="key" data-key="shift">⇧</button>
+              </div>
+              <div class="tab">
+                <button class="key" data-key="tab">⇥</button>
+              </div>
+              <div class="abc">
+                <button class="key" id="abc">abc</button>
+              </div>
+              <div class="spotlight">
+                <button class="key" data-key="spotlight">&#x1F50D;&#xFE0E;</button>
+              </div>
+              <div class="voldown">
+                <button class="key" data-key="voldown">&#x1F509;&#xFE0E;</button>
+              </div>
+              <div class="volup">
+                <button class="key" data-key="volup">&#x1F50A;&#xFE0E;</button>
+              </div>
+            </div>
+          </div>
+          <input type="text" id="keyboardInput">
+    </body>
+</html>
+
+
+
+
