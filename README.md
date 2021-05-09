@@ -16,13 +16,13 @@ Running this script will expose functionality on your local network that may hel
 2. Unzip and double click RemoteHID.spoon to install.
 3. Load and configure spoon in `~/.hammerspoon/init.lua`:
 
-Example:
+Example configuration with default settings:
 
 ```lua
 hs.loadSpoon("RemoteHID")
-spoon.RemoteHID.port = "7638"           --server port (default: 7638)
-spoon.RemoteHID.interface = nil         --interface (default: nil)
-spoon.RemoteHID.password = "changeme"   --password for webinterface (default: changeme)
+spoon.RemoteHID.port = "7638"           --server port
+spoon.RemoteHID.interface = nil         --interface
+spoon.RemoteHID.password = "changeme"   --password for webinterface
 
 spoon.RemoteHID:bindHotKeys({           --bind hotkeys (available commands: start, stop):
     start={{"cmd", "alt"}, "s", message="Started RemoteHID"},
