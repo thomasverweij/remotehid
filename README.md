@@ -37,7 +37,7 @@ spoon.RemoteHID:bindHotKeys({           --bind hotkeys (available commands: star
 
 1. Make sure hammerspoon is running
 2. Start server using specified key combination (or `spoon.RemoteHID:start()`).
-3. On your touch device, browse to http://YourMacHostname.local:7638 and login (keep username blank).
+3. On your touch device, browse to http://YourMacHostname.local:7638 and log in (keep username blank).
 4. Start controlling your mac using the web interface.
 5. Stop server using specified key combination (or `spoon.RemoteHID:stop()`).
 
