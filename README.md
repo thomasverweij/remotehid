@@ -8,11 +8,11 @@ Running this script will expose functionality on your local network that may hel
 
 ## Requirements
 
-- [Hammerspoon]('https://www.hammerspoon.org') installed on system
+- [Hammerspoon](https://www.hammerspoon.org) installed on system
 
 ## Install
 
-1. [Download spoon]('https://github.com/thomasverweij/remotehid/blob/master/RemoteHID.spoon.zip').
+1. [Download spoon](https://github.com/thomasverweij/remotehid/blob/master/RemoteHID.spoon.zip).
 2. Unzip and double click RemoteHID.spoon to install.
 3. Load and configure spoon in `~/.hammerspoon/init.lua`:
 
@@ -34,7 +34,7 @@ spoon.RemoteHID:bindHotKeys({           --bind hotkeys (available commands: star
 
 1. Make sure hammerspoon is running
 2. Start server using specified key combination (or `spoon.RemoteHID:start()`).
-3. On your touch device, browse to http://YourMacBookHostname.local:7638 and login (keep username blank).
+3. On your touch device, browse to http://YourMacHostname.local:7638 and login (keep username blank).
 4. Start controlling your mac using the web interface.
 5. Stop server using specified key combination (or `spoon.RemoteHID:stop()`).
 
