@@ -12,7 +12,7 @@ Running this script will expose functionality on your local network that may hel
 
 ## Install
 
-1. [Download spoon](https://github.com/thomasverweij/remotehid/blob/master/RemoteHID.spoon.zip).
+1. [Download spoon](https://github.com/thomasverweij/remotehid/blob/main/RemoteHID.spoon.zip).
 2. Unzip and double click RemoteHID.spoon to install.
 3. Load and configure spoon in `~/.hammerspoon/init.lua`:
 
