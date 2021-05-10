@@ -23,9 +23,9 @@
                 }
                 const startSocket = () => {
                     s = new WebSocket("ws://" + location.host + "/ws")
-                    s.onmessage = handleMessage
+                    s.onmessage = e => handleMessage(e)
                     s.onerror = e => console.log("[error] ", e)
-                    s.onclose = e => setTimeout(() => socket = startSocket(), 2000)
+                    s.onclose = e => setTimeout(() => g.socket = startSocket(), 2000)
                     return s
                 }
 
