@@ -2,8 +2,9 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>RemoteHID</title>
         <script>
-            
+
             function init() {
 
                 // constants
@@ -11,135 +12,168 @@
                 const keyboard = document.getElementById("keyboard")
                 const abc = document.getElementById("abc")
                 const touch = document.getElementById("touch")
-                const modkeys = ["ctrl","alt","cmd","shift"]
+                const token = document.getElementById("token").value
+                const g = {}
+
+                // websocket
+                const handleMessage = e => { 
+                    e.data == "Unauthenticated"
+                    && confirm("Other session detected. Take back control?")
+                    && window.location.reload() 
+                }
                 const startSocket = () => {
                     s = new WebSocket("ws://" + location.host + "/ws")
-                    s.onmessage = e => console.log("[message] ", e.data)
+                    s.onmessage = handleMessage
                     s.onerror = e => console.log("[error] ", e)
                     s.onclose = e => setTimeout(() => socket = startSocket(), 2000)
                     return s
                 }
 
                 // variables
-                var socket = startSocket()
-                var tw = touch.offsetWidth      // touch area width
-                var th = touch.offsetHeight     // touch area height
-                var ex = tw / 2;                // last touch x position 
-                var ey = th / 2;                // last touch y position
-                var tc = 0                      // simultaneous touch count
-                var sx = 0                      // start touch x position
-                var sy = 0                      // start touch y position
-                var mc = 0                      // mission control showing
-                var mk = []                     // activated modkeys
+                
+                g.socket = startSocket()
+                g.touchWidth = touch.offsetWidth        // touch area width
+                g.touchHeight = touch.offsetHeight      // touch area height
+                g.oldCursorX = g.touchHeight / 2;       // last touch x position 
+                g.oldCursorY = g.touchWidth / 2;        // last touch y position
+                g.touchCount = 0                        // simultaneous touch count
+                g.oldTouchX = 0                         // start touch x position
+                g.oldTouchY = 0                         // start touch y position
+                g.missionControl = 0                    // mission control showing
+                g.activatedModkeys = []                 // activated modkeys
                 
                 // handlers
                 const handleKeyboardInput = function(e) { 
                     e.preventDefault() 
 
-                    if (mk.length != 0) {
-                        socket.send(encodeBlob({
+                    if (g.activatedModkeys.length != 0) {
+                        sendMsg({
                             type: "key", 
-                            mods: mk,
+                            mods: g.activatedModkeys,
                             key: e.key
-                        })) 
+                        })
                         resetModKeys()
                     } else {
-                        socket.send(encodeBlob({
+                        sendMsg({
                             type: "string", 
                             chars: filterKey(e.key)
-                        }))
+                        })
                     }
                 }
 
                 const handleKey = function(e) {
                     var key = e.target.dataset.key
-                    if(modkeys.includes(key)) {
-                        if (mk.includes(key)) {
-                            mk.pop(key)
-                            e.target.classList.remove("active")
-                        } else {
-                            mk.push(key)
-                            e.target.classList.add("active")
-                            keyboardInput.focus()
-                        }
-                    } else if (key != undefined) {
-                        socket.send(encodeBlob({
+                    if (!maybeToggleModKey(e.target, key) && key != undefined) {
+                        sendMsg({
                             type: "key", 
-                            mods: mk,
+                            mods: g.activatedModkeys,
                             key: key
-                        })) 
-                        if(key == "spotlight") {
-                            keyboardInput.focus()
-                        }
-                        resetModKeys()
+                        }) 
+                        afterKeyPress(key)
                     }
                 }
 
                 const handleTouchMove = function(e) {
                     e.preventDefault()
 
-                    cx = e.pageX
-                    cy = e.pageY
+                    touchX = e.pageX
+                    touchY = e.pageY
 
-                    if(cx >= sx) { nx = ex + (cx - sx) } 
-                    else { nx = ex - (sx - cx) }
+                    deltaX = Math.abs(touchX - g.oldTouchX)
+                    deltaY = Math.abs(touchY - g.oldTouchY)
 
-                    if(cy >= sy) { ny = ey + (cy - sy) } 
-                    else { ny = ey - (sy - cy) }
+                    if(touchX >= g.oldTouchX) { cursorX = g.oldCursorX + deltaX } 
+                    else { cursorX = g.oldCursorX - deltaX }
+                    if(touchY >= g.oldTouchY) { cursorY = g.oldCursorY + deltaY } 
+                    else { cursorY = g.oldCursorY - deltaY }
 
-                    if(tc == 1) { 
-                        socket.send(encodeBlob({
+                    if(g.touchCount == 1) { 
+                        sendMsg({
                             type: "mousemove", 
-                            x: nx / tw, 
-                            y: ny / th
-                        }))
-                        ex = nx
-                        ey = ny
-                        sx = cx
-                        sy = cy
+                            x: cursorX / g.touchWidth, 
+                            y: cursorY / g.touchHeight
+                        })
+                        g.oldCursorX = cursorX
+                        g.oldCursorY = cursorY
+                        g.oldTouchX = touchX
+                        g.oldTouchY = touchY
 
-                    } else if(tc == 2){
-                        socket.send(encodeBlob({
+                    } else if(g.touchCount == 2){
+                        sendMsg({
                             type: "scroll", 
-                            x: cx - sx, 
-                            y: cy - sy
-                        }))
-                        sx = cx
-                        sy = cy
+                            x: touchX - g.oldTouchX, 
+                            y: touchY - g.oldTouchY
+                        })
+                        g.oldTouchX = touchX
+                        g.oldTouchY = touchY
 
-                    } else if(tc == 3 && mc == 0){
-                        mc = 1
-                        socket.send(encodeBlob({
-                            type: "missioncontrol"
-                        }))
+                    } else if(g.touchCount == 3 && g.missionControl == 0){
+                        g.missionControl = 1
+                        sendMsg({type: "missioncontrol"})
                     }
                 }
                 
-                const handleClick = e => socket.send(encodeBlob({type: "leftclick"}))
+                const handleClick = e => sendMsg({type: "leftclick"})
+
 
                 // helpers
-                const encodeBlob = data => new Blob([JSON.stringify(data)], {type : "application/json"})
                 const filterKeys = {Backspace: "\b", Enter: "\n"}
                 const filterKey = k => (k.length == 1 && k) || (filterKeys[k] || "")
-                const resetModKeys = function() {
-                    mk = []
+                const encStr = str => new Uint8Array([...unescape(encodeURIComponent(str))].map(c => c.charCodeAt(0)))
+                const hm = async (key, message) => {
+                    c = await crypto.subtle.importKey('raw', encStr(key), { name: 'HMAC', hash: 'SHA-256' }, true, ['sign'])
+                    s = await crypto.subtle.sign('HMAC', c, encStr(message))
+                    return [...new Uint8Array(s)].map(x => x.toString(16).padStart(2, '0')).join('')
+                }
+                const encodeBlob = async data => {
+                    json = JSON.stringify(data)
+                    h = await hm(token, json)
+                    msg = {d: btoa(json), s: btoa(h)}
+                    return new Blob([JSON.stringify(msg)], {type : "application/json"})
+                }
+                const sendMsg = data => {
+                    console.log(data["type"])
+                    encodeBlob(data).then((d) => {
+                        g.socket.send(d)
+                    })
+                }
+                const maybeToggleModKey = (target, key) => {
+                    if (!["ctrl","alt","cmd","shift"].includes(key)) return false
+                    if (g.activatedModkeys.includes(key)) {
+                            g.activatedModkeys.pop(key)
+                            target.classList.remove("active")
+                    } else {
+                        g.activatedModkeys.push(key)
+                        target.classList.add("active")
+                        keyboardInput.focus()
+                    }
+                    return true
+                }
+                const resetModKeys = () => {
+                    g.activatedModkeys = []
                     mks = document.getElementsByClassName("active")
                     while(mks[0]) {mks[0].classList.remove("active")}
+                }
+                const afterKeyPress = key => {
+                    if(key == "spotlight") {
+                        keyboardInput.focus()
+                    }
+                    resetModKeys()
                 }
 
                 // callbacks
                 keyboardInput.onkeydown = handleKeyboardInput
                 keyboard.onclick = handleKey
                 touch.ontouchstart = function(e) {
-                    tc += 1
-                    sx = e.pageX
-                    sy = e.pageY
+                    g.touchCount += 1
+                    g.oldTouchX = e.pageX
+                    g.oldTouchY = e.pageY
                 }
                 touch.ontouchend = function() { 
-                    tc = 0
-                    mc = 0
-                    ex = Math.max(Math.min(ex, tw), 0)  
-                    ey = Math.max(Math.min(ey, th), 0)
+                    g.touchCount = 0
+                    g.missionControl = 0
+                    g.oldCursorX = Math.max(Math.min(g.oldCursorX, g.touchWidth), 0)  
+                    g.oldCursorY = Math.max(Math.min(g.oldCursorY, g.touchHeight), 0)
                 }
                 touch.ontouchmove = handleTouchMove
                 touch.onclick = handleClick
@@ -307,6 +341,7 @@
             </div>
           </div>
           <input type="text" id="keyboardInput">
+          <input type="hidden" id="token" value="{{ token }}">
     </body>
 </html>
 

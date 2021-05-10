@@ -3,20 +3,22 @@
 --- Hammerspoon script enabling users to use their smartphone as a remote mouse and keyboard for their mac.
 --- 
 
-local obj={}
-obj.__index = obj
+local server={}
+local actions={}
+
+server.__index = server
 
 -- Metadata
-obj.name = "RemoteHID"
-obj.version = "0.1"
-obj.author = "Thomas Verweij <tverweij@pm.me>"
-obj.homepage = "https://github.com/thomasverweij"
-obj.license = "MIT - https://opensource.org/licenses/MIT"
+server.name = "RemoteHID"
+server.version = "0.1"
+server.author = "Thomas Verweij <tverweij@pm.me>"
+server.homepage = "https://github.com/thomasverweij"
+server.license = "MIT - https://opensource.org/licenses/MIT"
 
 --- RemoteHID.port
 --- Variable
 --- The port that the server will listen on (default: 7638). 
-obj.port = "7638"
+server.port = "7638"
 
 --- RemoteHID.interface
 --- Variable
@@ -27,21 +29,23 @@ obj.port = "7638"
 ---     * localhost
 ---     * loopback
 ---     * nil (which means all interfaces, and is the default)
-obj.interface = nil
+server.interface = nil
 
 --- RemoteHID.password
 --- Variable
 --- The password to access the webinterface.
 ---
 --- default: changeme
-obj.password = "changeme"
+server.password = "changeme"
 
-obj._mainScreen = nil 
-obj._screenWidth = nil 
-obj._screenHeight = nil
-obj._server = nil
-obj._menuBar = nil
-obj._host = nil
+
+server._mainScreen = nil 
+server._screenWidth = nil 
+server._screenHeight = nil
+server._server = nil
+server._menuBar = nil
+server._host = nil
+server._token = nil
 
 local function _readFile(path)
     local file = io.open(path, "rb") 
@@ -51,12 +55,25 @@ local function _readFile(path)
     return content
 end
 
+local function _validate(msg)
+    local data = hs.json.decode(msg)
+    if not data then return false end
+    if not data["d"] then return false end
+    if not data["s"] then return false end
+    local d = hs.base64.decode(data["d"])
+    local s = hs.base64.decode(data["s"])
+    local cs = hs.hash.hmacSHA256(server._token, d)
+    if cs ~= s then return false     
+    else return hs.json.decode(d)
+    end
+end
+
 local function _getNetworkHost()
     h = hs.fnutils.filter(
         hs.host.names(), 
         function(x) return string.find(x,".local") end
     )
-    return (h[1] or "") .. ":" .. obj.port
+    return (h[1] or "") .. ":" .. server.port
 end
 
 local function _typeString(data)
@@ -76,8 +93,8 @@ end
 local function _moveMouse(data)
     hs.mouse.setRelativePosition(
         hs.geometry.point(
-            data["x"] * obj._screenWidth, 
-            data["y"] * obj._screenHeight)
+            data["x"] * server._screenWidth, 
+            data["y"] * server._screenHeight)
     )
 end
 
@@ -110,34 +127,37 @@ local function _adjustVolume(x)
     return true
 end
 
-local _actions = {
-    ["string"] = _typeString, 
-    ["key"] = _pressKey,
-    ["mousemove"] = _moveMouse,
-    ["scroll"] = _scroll,
-    ["leftclick"] = _leftClick,
-    ["missioncontrol"] = _missionControl
-}
+
+actions.string = _typeString
+actions.key = _pressKey
+actions.mousemove = _moveMouse
+actions.scroll = _scroll
+actions.leftclick = _leftClick
+actions.missioncontrol = _missionControl
+
+
 
 --- RemoteHID:init()
 --- Method
 --- Init function. Called when loading spoon
-function obj:init()
-
-    function _serverCallback(method, path, headers, body)
-        if path == "/"
-        then
-            local content = _readFile(hs.spoons.resourcePath("client.html"))
-            return content, 200, {}
-        else
-            return "Page not found", 404, {}
-        end
-    end
+function server:init()
     
+    function _serverCallback(method, path, headers, body)
+        if path ~= "/" then return "Page not found", 404, {} end
+        self._token = hs.hash.MD5(os.time() .. self.password)
+        local content = string.gsub(
+                _readFile(hs.spoons.resourcePath("client.html")),
+                "{{ token }}",
+                self._token
+            )
+        return content, 200, {}
+    end
+
     function _wsCallback(msg)
-        local data = hs.json.decode(msg)
-        r = _actions[data["type"]] and _actions[data["type"]](data)
-        return string.format("exit: %i %s", r and 0 or 1, msg)
+        local data = _validate(msg)
+        if not data then return "Unauthenticated" end
+        r = actions[data["type"]] and actions[data["type"]](data)
+        return "ack"
     end
 
     function _menuCallback()
@@ -164,7 +184,7 @@ end
 --- RemoteHID:start()
 --- Method
 --- Start RemoteHID server
-function obj:start()
+function server:start()
     self._server:setPort(self.port)
     self._server:setPassword(self.password)
     self._server:setInterface(self.interface)
@@ -178,7 +198,7 @@ end
 --- RemoteHID:stop()
 --- Method
 --- Stop RemoteHID server
-function obj:stop()
+function server:stop()
     self._menuBar:removeFromMenuBar()
     self._server:stop()
     print("-- Stopped RemoteHID server")
@@ -200,7 +220,7 @@ end
 ---     stop={hyper, "a", message="Stopped RemoteHID"}
 --- })
 --- ```
-function obj:bindHotKeys(mapping)
+function server:bindHotKeys(mapping)
     local spec = {
       start = hs.fnutils.partial(self.start, self),
       stop = hs.fnutils.partial(self.stop, self)
@@ -209,5 +229,5 @@ function obj:bindHotKeys(mapping)
     return self
 end
 
-return obj
+return server
 
