@@ -41,7 +41,7 @@ server._host = nil
 server._token = nil
 server._pin = nil
 
-local function _readFile(path)
+function _readFile(path)
     local file = io.open(path, "rb") 
     if not file then return nil end
     local content = file:read "*a" 
@@ -49,7 +49,7 @@ local function _readFile(path)
     return content
 end
 
-local function _validate(msg)
+function _validate(msg)
     local data = hs.json.decode(msg)
     if not data then return false end
     if not data["d"] then return false end
@@ -62,7 +62,7 @@ local function _validate(msg)
     end
 end
 
-local function _getNetworkHost()
+function _getNetworkHost()
     h = hs.fnutils.filter(
         hs.host.names(), 
         function(x) return string.find(x,".local") end
@@ -70,12 +70,12 @@ local function _getNetworkHost()
     return (h[1] or "") .. ":" .. server.port
 end
 
-local function _typeString(data)
+function _typeString(data)
     hs.eventtap.keyStrokes(data["chars"])
     return true
 end
 
-local function _pressKey(data)
+function _pressKey(data)
     if data["key"] == "spotlight" then hs.eventtap.keyStroke({"cmd"}, "space") 
     elseif data["key"] == "voldown" then _adjustVolume(-5)
     elseif data["key"] == "volup" then _adjustVolume(5)    
@@ -84,7 +84,7 @@ local function _pressKey(data)
     return true
 end
 
-local function _moveMouse(data)
+function _moveMouse(data)
     hs.mouse.setRelativePosition(
         hs.geometry.point(
             data["x"] * server._screenWidth, 
@@ -92,14 +92,14 @@ local function _moveMouse(data)
     )
 end
 
-local function _leftClick()
+function _leftClick()
     hs.eventtap.leftClick(
         hs.mouse.absolutePosition()
     )
     return true
 end
 
-local function _scroll(data)
+function _scroll(data)
     hs.eventtap.scrollWheel({
         data["x"] / 2, 
         data["y"] / 2 
@@ -109,12 +109,12 @@ local function _scroll(data)
     return true
 end
 
-local function _missionControl()
+function _missionControl()
     hs.eventtap.keyStroke({"fn","ctrl"}, "up", 100)
     return true
 end
 
-local function _adjustVolume(x)
+function _adjustVolume(x)
     local dev = hs.audiodevice.defaultOutputDevice()
     local new = math.min(100, math.max(0, math.floor(dev:volume() + x)))
     dev:setVolume(new)
@@ -201,6 +201,7 @@ end
 --- Method
 --- Stop RemoteHID server
 function server:stop()
+    hs.notify.withdrawAll()
     self._menuBar:removeFromMenuBar()
     self._server:stop()
     print("-- Stopped RemoteHID server")
