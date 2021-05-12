@@ -12,7 +12,7 @@ server.__index = server
 server.name = "RemoteHID"
 server.version = "0.1"
 server.author = "Thomas Verweij <tverweij@pm.me>"
-server.homepage = "https://github.com/thomasverweij"
+server.homepage = "https://github.com/thomasverweij/remotehid"
 server.license = "MIT - https://opensource.org/licenses/MIT"
 
 --- RemoteHID.port
@@ -31,13 +31,6 @@ server.port = "7638"
 ---     * nil (which means all interfaces, and is the default)
 server.interface = nil
 
---- RemoteHID.password
---- Variable
---- The password to access the webinterface.
----
---- default: changeme
-server.password = "changeme"
-
 
 server._mainScreen = nil 
 server._screenWidth = nil 
@@ -46,6 +39,7 @@ server._server = nil
 server._menuBar = nil
 server._host = nil
 server._token = nil
+server._pin = nil
 
 local function _readFile(path)
     local file = io.open(path, "rb") 
@@ -144,12 +138,13 @@ function server:init()
     
     function _serverCallback(method, path, headers, body)
         if path ~= "/" then return "Page not found", 404, {} end
-        self._token = hs.hash.MD5(os.time() .. self.password)
+        self._token = hs.hash.MD5(os.time() .. self._pin)
         local content = string.gsub(
                 _readFile(hs.spoons.resourcePath("client.html")),
                 "{{ token }}",
                 self._token
             )
+        hs.notify.withdrawAll()
         return content, 200, {}
     end
 
@@ -185,13 +180,20 @@ end
 --- Method
 --- Start RemoteHID server
 function server:start()
-    self._server:setPort(self.port)
-    self._server:setPassword(self.password)
+    self._server:stop()
+    self._pin = tostring(math.random(1000,9999))
+    self._server:setPort(self.port or "7638")
+    self._server:setPassword(self._pin)
     self._server:setInterface(self.interface)
     self._menuBar:returnToMenuBar()
     self._menuBar:setTitle("⚪")
     self._server:start()
     print("-- Started RemoteHID server")
+    hs.notify.new(nil, {
+        title = "RemoteHID started", 
+        subTitle = "Pin: " .. self._pin .. "", 
+        withdrawAfter = 0
+    }):send()
 end
 
 

@@ -25,7 +25,6 @@ Example configuration with default settings:
 hs.loadSpoon("RemoteHID")
 spoon.RemoteHID.port = "7638"           --server port
 spoon.RemoteHID.interface = nil         --interface
-spoon.RemoteHID.password = "changeme"   --password for webinterface
 
 spoon.RemoteHID:bindHotKeys({           --bind hotkeys (available commands: start, stop):
     start={{"cmd", "alt"}, "s", message="Started RemoteHID"},
@@ -37,7 +36,7 @@ spoon.RemoteHID:bindHotKeys({           --bind hotkeys (available commands: star
 
 1. Make sure hammerspoon is running
 2. Start server using specified key combination (or `spoon.RemoteHID:start()`).
-3. On your touch device, browse to http://YourMacHostname.local:7638 and log in (keep username blank).
-4. Start controlling your mac using the web interface.
-5. Stop server using specified key combination (or `spoon.RemoteHID:stop()`).
-
+3. You will receive a message with a 4-digit pin.
+4. On your touch device, browse to http://YourMacHostname.local:7638 and log in using pin (keep username blank).
+5. Start controlling your mac using the web interface.
+6. Stop server using specified key combination (or `spoon.RemoteHID:stop()`).

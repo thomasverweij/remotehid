@@ -18,7 +18,7 @@
                 // websocket
                 const handleMessage = e => { 
                     e.data == "Unauthenticated"
-                    && confirm("Other session detected. Take back control?")
+                    && confirm("Session invalidated. Reset?")
                     && window.location.reload() 
                 }
                 const startSocket = () => {
@@ -29,8 +29,7 @@
                     return s
                 }
 
-                // variables
-                
+                // global variables
                 g.socket = startSocket()
                 g.touchWidth = touch.offsetWidth        // touch area width
                 g.touchHeight = touch.offsetHeight      // touch area height
