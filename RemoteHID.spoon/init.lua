@@ -49,6 +49,13 @@ function _readFile(path)
     return content
 end
 
+function resourcePath(name)
+    local scriptPath = hs.spoons.scriptPath()
+    local scriptDir = scriptPath .. hs.fs.displayName(scriptPath)
+    local maybeScriptDir = (hs.fs.pathToAbsolute(scriptDir) .. "/" or scriptPath)
+    return maybeScriptDir .. name
+end
+
 function _validate(msg)
     local data = hs.json.decode(msg)
     if not data then return false end
@@ -140,7 +147,7 @@ function server:init()
         if path ~= "/" then return "Page not found", 404, {} end
         self._token = hs.hash.MD5(os.time() .. self._pin)
         local content = string.gsub(
-                _readFile(hs.spoons.resourcePath("client.html")),
+                _readFile(resourcePath("client.html")),
                 "{{ token }}",
                 self._token
             )
