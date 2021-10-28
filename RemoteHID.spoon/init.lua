@@ -175,7 +175,7 @@ function server:init()
     self._screenWidth = self._mainScreen:currentMode()["w"]
     self._screenHeight = self._mainScreen:currentMode()["h"]
     self._host = _getNetworkHost()
-    self._menuBar = hs.menubar.new(true)
+    self._menuBar = hs.menubar.new(false)
     self._menuBar:setMenu(_menuCallback)
     self._menuBar:setTooltip("RemoteHID")
     self._server = hs.httpserver.new(false, true)
