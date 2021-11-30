@@ -22,7 +22,7 @@
                     && window.location.reload() 
                 }
                 const startSocket = () => {
-                    s = new WebSocket("ws://" + location.host + "/ws")
+                    s = new WebSocket("wss://" + location.host + "/ws")
                     s.onmessage = e => handleMessage(e)
                     s.onerror = e => console.log("[error] ", e)
                     s.onclose = e => setTimeout(() => g.socket = startSocket(), 2000)
@@ -131,7 +131,6 @@
                     return new Blob([JSON.stringify(msg)], {type : "application/json"})
                 }
                 const sendMsg = data => {
-                    console.log(data["type"])
                     encodeBlob(data).then((d) => {
                         g.socket.send(d)
                     })

@@ -178,7 +178,7 @@ function server:init()
     self._menuBar = hs.menubar.new(false)
     self._menuBar:setMenu(_menuCallback)
     self._menuBar:setTooltip("RemoteHID")
-    self._server = hs.httpserver.new(false, true)
+    self._server = hs.httpserver.new(true, true)
     self._server:setCallback(_serverCallback)
     self._server:websocket("/ws", _wsCallback)
 end
