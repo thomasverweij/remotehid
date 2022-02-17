@@ -137,6 +137,13 @@ actions.leftclick = _leftClick
 actions.missioncontrol = _missionControl
 
 
+function server:showQrCode(url)
+    wv = hs.webview.newBrowser(hs.geometry.rect(250, 250, 250, 250))
+    wv:url("https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" .. url)
+    wv:show()
+    wv:bringToFront()
+end
+
 
 --- RemoteHID:init()
 --- Method
@@ -162,10 +169,13 @@ function server:init()
         return "ack"
     end
 
-    function _menuCallback()
+    function _menuCallback(pin)
         return {
             { title = "Interface: " .. (self.interface or "*"), disabled = true },
-            { title = "Host: " .. (self._host or "Unavailable"), disabled = true },
+            { title = "Host: https://" .. (self._host or "Unavailable"), disabled = true },
+            { title = "Pin: " .. self._pin, disabled = true},
+            { title = "-"},
+            { title = "Scan QR", fn = function() self:showQrCode("https://" .. self._host) end},
             { title = "-"},
             { title = "Deactivate", fn = function() self:stop() end }
         }
@@ -193,7 +203,7 @@ function server:start()
     self._server:setPassword(self._pin)
     self._server:setInterface(self.interface)
     self._menuBar:returnToMenuBar()
-    self._menuBar:setTitle("⚪")
+    self._menuBar:setTitle("RemoteHID: running")
     self._server:start()
     print("-- Started RemoteHID server")
     hs.notify.new(nil, {
